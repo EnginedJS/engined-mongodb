@@ -43,8 +43,7 @@ main();
 
 ## Access MongoDB
 
-For consuming messages, inherit `Consumer` class to implement service.
-
+Pretty easy to get agent from context and specify collection to get mongoose model. Then just operate database by mongoose way.
 
 ```javascript
 let agent = this.getContext('MongoDB')['MyMongoDB'];
