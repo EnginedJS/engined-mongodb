@@ -46,7 +46,7 @@ main();
 Pretty easy to get agent from context and specify collection to get mongoose model. Then just operate database by mongoose way.
 
 ```javascript
-let agent = this.getContext('MongoDB')['MyMongoDB'];
+let agent = this.getContext('MongoDB').getAgent('MyMongoDB');
 
 // Mongoose way to operate database
 let docs = await agent.model('MyCollection').find({});
@@ -54,6 +54,6 @@ let docs = await agent.model('MyCollection').find({});
 
 ## License
 Licensed under the MIT License
- 
+
 ## Authors
 Copyright(c) 2017 Fred Chien（錢逢祥） <<cfsghost@gmail.com>>
