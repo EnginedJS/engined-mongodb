@@ -15,17 +15,6 @@ module.exports = (opts = {}) => class extends Service {
 	}
 
 	async start() {
-
-		let database = this.getContext().get('MongoDB');
-		if (!database) {
-			database = {};
-			this.getContext().set('MongoDB', database);
-		}
-
-		if (database[this.agentName]) {
-			throw new Error('Failed to initialize agent.', this.agentName + ' agent exists already');
-		}
-
 		if (!this.uri) {
 			throw new Error('Failed to initialize agent.', 'No specific URI');
 		}
@@ -38,25 +27,40 @@ module.exports = (opts = {}) => class extends Service {
 			this.dbName = urlObj.pathname.replace('/', '');
 		}
 
-		// Connect to raw database
+		// Create agent
 		let agent = this.agent = new MongoAgent(this.getContext(), this.dbName, this.schemaPath);
-		await agent.connect(this.uri);
 
-		database[this.agentName] = agent;
+		try {
+			// Register on context object
+			this.getContext()
+				.assert('MongoDB')
+				.register(this.agentName, this.agent);
+		} catch(e) {
+			throw new Error('Failed to initialize agent.', this.agentName + ' agent exists already');
+		}
+
+		// Connect to database
+		await agent.connect(this.uri);
 	}
 
 	async stop() {
-
-		let database = this.getContext().get('MongoDB');
-
-		if (!database)
+		if (this.agent === null)
 			return;
 
-		if (!this.agent)
+		// Disconnect
+		await this.agent.disconnect();
+
+		this.agent = null;
+
+		// Getting agent member
+		let agentManager = this.getContext().get('MongoDB');
+		if (!agentManager)
 			return;
 
-		this.agent.disconnect();
+		// Take off agent from context
+		agentManager.unregister(this.agentName);
 
-		delete database[this.agentName];
+		if (agentManager.count() === 0)
+			this.getContext().remove('MongoDB');
 	}
 }
